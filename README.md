@@ -43,7 +43,7 @@ To finetune LipGER, just run:
 ```
 sh finetune.sh
 ```
-where you need to manually set the values for `data`, `--train_path` and `--val_path`.
+where you need to manually set the values for `data` (with the dataset name), `--train_path` and `--val_path` (with absolute paths to train and valid files).
 
 ## LipGER inference  
 
