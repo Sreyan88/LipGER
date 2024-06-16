@@ -123,29 +123,11 @@ class GPT(nn.Module):
             n_elem=int(self.config.rotary_percentage * self.config.head_size),
             dtype=torch.bfloat16,
             device=idx.device,
-            # condense_ratio=self.config.condense_ratio,
         )
 
     def build_mask_cache(self, idx: torch.Tensor) -> torch.Tensor:
         ones = torch.ones((self.config.block_size, self.config.block_size), device=idx.device, dtype=torch.bool)
         return torch.tril(ones).unsqueeze(0).unsqueeze(0)
-
-    # def build_kv_caches(self, idx: torch.Tensor, max_seq_length: int, rope_cache_length: int) -> List[KVCache]:
-    #     B = idx.size(0)
-    #     heads = 1 if self.config.n_query_groups == 1 else self.config.n_query_groups
-
-    #     k_cache_shape = (
-    #         B,
-    #         max_seq_length,
-    #         heads,
-    #         rope_cache_length + self.config.head_size - int(self.config.rotary_percentage * self.config.head_size),
-    #     )
-    #     v_cache_shape = (B, max_seq_length, heads, self.config.head_size)
-    #     device = idx.device
-    #     return [
-    #         (torch.zeros(k_cache_shape, device=device), torch.zeros(v_cache_shape, device=device))
-    #         for _ in range(self.config.n_layer)
-    #     ]
 
     def build_kv_caches(self, idx: torch.Tensor, max_seq_length: int, rope_cache_length: int) -> List[KVCache]:
         batch_size = idx.size(0)
@@ -202,6 +184,7 @@ class Block(nn.Module):
             
             x = x + h
             x = x + self.mlp(self.norm_2(x))
+            
         return x, new_kv_cache
 
 
@@ -233,17 +216,9 @@ class CausalSelfAttention(nn.Module):
         q_per_kv = self.config.n_head // self.config.n_query_groups
         total_qkv = q_per_kv + 2  # each group has 1+ queries, 1 key, and 1 value
         qkv = qkv.view(B, T, self.config.n_query_groups, total_qkv, self.config.head_size) # (B, T, n_query_groups, total_qkv, hs)
-        # qkv = qkv.permute(0, 2, 3, 1, 4)  # (B, n_query_groups, total_qkv, T, hs)
 
         # split batched computation into three
         q, k, v = qkv.split((q_per_kv, 1, 1), dim=-2)
-
-        # repeat k and v if necessary
-        # Peiyuan: we do not need to do this as flash attention 2 already support GQA
-        # if self.config.n_query_groups != 1:  # doing this would require a full kv cache with MQA (inefficient!)
-        #     # for MHA this is a no-op
-        #     k = k.expand(B, self.config.n_query_groups, q_per_kv, T, self.config.head_size)
-        #     v = v.expand(B, self.config.n_query_groups, q_per_kv, T, self.config.head_size)
 
         q = q.reshape(B,  T, -1, self.config.head_size)  # (B, T, nh_q, hs)
         k = k.reshape(B,  T, -1, self.config.head_size)  
@@ -286,31 +261,6 @@ class CausalSelfAttention(nn.Module):
         y = self.proj(y)
 
         return y, kv_cache
-
-    # def scaled_dot_product_attention(
-    #     self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, mask: Optional[torch.Tensor] = None
-    # ):
-    #     scale = 1.0 / math.sqrt(self.config.head_size)
-        
-    #     if (
-    #         FlashAttention2Available
-    #         and mask is None
-    #         and q.device.type == "cuda"
-    #         and q.dtype in (torch.float16, torch.bfloat16)
-    #     ):
-    #         from flash_attn import flash_attn_func
-
-    #         return flash_attn_func(q, k, v, dropout_p=0.0, softmax_scale=scale, causal=True)
-    #     q = q.transpose(1, 2)
-    #     k = k.transpose(1, 2)
-    #     v = v.transpose(1, 2)
-    #     if q.size() != k.size():
-    #          k = k.repeat_interleave(q.shape[1]//k.shape[1], dim=1)
-    #          v = v.repeat_interleave(q.shape[1]//v.shape[1], dim=1)
-    #     y = torch.nn.functional.scaled_dot_product_attention(
-    #         q, k, v, attn_mask=mask, dropout_p=0.0, scale=scale, is_causal=mask is None
-    #     )
-    #     return y.transpose(1, 2)
 
     def scaled_dot_product_attention(
         self, q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, mask: Optional[torch.Tensor] = None

@@ -30,26 +30,6 @@ def load_json( json_fp ):
     return json_content
 
 
-class MINE(nn.Module):
-    def __init__(self, input_dim1=4096, input_dim2=512) -> None:
-        super().__init__()
-        n_hidden = input_dim1 // 4
-        self.prefix = nn.Linear(384, input_dim1, bias=False)
-        self.proj1 = nn.Linear(input_dim1, n_hidden, bias=False)
-        self.proj2 = nn.Linear(input_dim2, n_hidden, bias=False)
-        self.proj3 = nn.Linear(n_hidden, n_hidden // 4, bias=False)
-        self.proj4 = nn.Linear(n_hidden // 4, 1, bias=False)
-
-    def forward(self, x1, x2, raw=False) -> torch.Tensor:
-        if raw:
-            x1 = self.prefix(x1)
-        x1 = F.silu(self.proj1(x1.mean(dim=1)))
-        x2 = F.silu(self.proj2(x2.mean(dim=1)))
-        x = F.silu(self.proj3(x1 + x2))
-        x = F.sigmoid(self.proj4(x))
-        return x.squeeze(-1)
-
-
 @dataclass
 class Config(BaseConfig):
     adapter_prompt_length: int = 20
@@ -73,8 +53,7 @@ class CausalSelfAttention(BaseCausalSelfAttention):
             self.visual_blocks = nn.ModuleList([
                 Visual_Block(512, 16, 4.0, qkv_bias=True)
                 for _ in range(4)])
-            # self.prompt_length = config.adapter_prompt_length
-            # gate for adaption
+
             self.gating_factor = torch.nn.Parameter(torch.zeros(1, 1, config.n_head, 1))
             self.reset_parameters()
 
@@ -175,22 +154,6 @@ class CausalSelfAttention(BaseCausalSelfAttention):
                 ak = ak.view(B, -1, aT, self.config.head_size)  # (B, nh_ak, aT, hs) = (B, 32, 20, 128)
                 av = av.view(B, -1, aT, self.config.head_size)  # (B, nh_av, aT, hs)
 
-                # ### 1. add emb_diff from sbert
-                # ek = self.ef_key(emb_diff)
-                # ev = self.ef_value(emb_diff)
-
-                # emb_diff_mid = [ek.clone(), ev.clone()]
-
-                # ek_norm = self.projection_rms_key(ek).view(B, 10, 32, 128).transpose(1, 2)  # B, 32, 20, 128
-                # ev_norm = self.projection_rms_value(ev).view(B, 10, 32, 128).transpose(1, 2)
-                # # denoise (adaptation prompt - language noise)
-
-                # ek_norm = ek_norm * self.key_gating_factor
-                # ev_norm = ev_norm * self.value_gating_factor
-
-                # ak = ak + ek_norm.repeat(1,1,2,1)
-                # av = av + ev_norm.repeat(1,1,2,1)
-
                 adapter_kv_cache = (ak, av)
 
 
@@ -280,7 +243,7 @@ class GPT(BaseModel):
                         extract_feats=True)
 
         print('Loading weights for lipreading stream')
-        lip_encoder.load_state_dict(torch.load('/fs/nexus-projects/brain_project/eccv/RobustGER/lipreading_best.pth'))
+        lip_encoder.load_state_dict(torch.load('/path/to/lipreading_best.pth'))
 
         return lip_encoder
 
@@ -294,7 +257,7 @@ class GPT(BaseModel):
         assert config.padded_vocab_size is not None
         self.config = config
 
-        self.visual_net_lipreading = self.build_lipencoder("/fs/nexus-projects/brain_project/eccv/Amphion/models/tta/VisualVoice/configs/lrw_snv1x_tcn2x.json")
+        self.visual_net_lipreading = self.build_lipencoder("/path/to/lrw_snv1x_tcn2x.json")
         self.lm_head = nn.Linear(config.n_embd, config.padded_vocab_size, bias=False)
         self.transformer = nn.ModuleDict(
             dict(
@@ -310,19 +273,6 @@ class GPT(BaseModel):
         self.kv_caches: List[KVCache] = []
         self.adapter_kv_caches: List[KVCache] = []
 
-        # self.build_rope_cache = rope_cache()
-        # self.register_buffer("cos", cos, persistent=False)
-        # self.register_buffer("sin", sin, persistent=False)
-
-    # def rope_cache(self, device: Optional[torch.device] = None) -> Tuple[torch.Tensor, torch.Tensor]:
-    #     return build_rope_cache(
-    #         seq_len=self.config.block_size,
-    #         n_elem=self.config.rope_n_elem,
-    #         dtype=torch.get_default_dtype(),
-    #         device=device,
-    #         condense_ratio=self.config.rope_condense_ratio,
-    #         base=self.config.rope_base,
-    #     )
 
     def reset_cache(self) -> None:
         super().reset_cache()
