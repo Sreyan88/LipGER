@@ -32,18 +32,18 @@ For more details, you can also refer to [this link](https://github.com/YUCHEN005
 
 ### 2. Download the checkpoint for the Lip Motion Encoder  
 
-The checkpoint is available [here]. After downloading, change the path of the checkpoint in 
-
+The checkpoint is available [here](https://drive.google.com/file/d/1RqGd_13BeX1ybD1UPJIu8eDsilCsrAF9/view?usp=sharing). After downloading, change the path of the checkpoint at <>.
 
 ### 2. Prepare the dataset for training (and inference)  
 
 ### 3. Fine-tune LipGER  
 
-Then just run:
+To finetune LipGER, just run:
 
 ```
 sh finetune.sh
 ```
+where you need to manually set the values for `data`, `--train_path` and `--val_path`.
 
 ## LipGER inference  
 
@@ -55,7 +55,7 @@ infer.sh
 
 ## Acknowledgement  
 
-Our code is inspired from [RobustGER](https://github.com/YUCHEN005/RobustGER/tree/master).  Please cite their paper too if you find our paper or code useful.  
+Our code is inspired from [RobustGER](https://github.com/YUCHEN005/RobustGER/tree/master). Please cite their paper too if you find our paper or code useful.  
 
 
 ## Citation    
