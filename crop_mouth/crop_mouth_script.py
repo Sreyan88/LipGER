@@ -5,12 +5,13 @@ import pickle
 dir_path = ""
 txt_file_path = ""
 mp4_files = []
-for root, dirs, files in tqdm(os.walk(dir_path)):
-    for file in files:
-        if file.endswith('.mp4'):
-            mp4_files.append(os.path.join(root, file))
+if dir_path != "":
+    for root, dirs, files in tqdm(os.walk(dir_path)):
+        for file in files:
+            if file.endswith('.mp4'):
+                mp4_files.append(os.path.join(root, file))
 
-if not mp4_files:
+if txt_file_path != "":
     with open(txt_file_path, "rb") as fp:   # Unpickling
         mp4_files = pickle.load(fp)
 
