@@ -81,12 +81,13 @@ For inference just run:
 infer.sh
 ```
 
-## Acknowledgement  
+## 🌻 Acknowledgement  
+The code for cropping mouth ROI is inspired from [Visual_Speech_Recognition_for_Multiple_Languages](https://github.com/mpc001/Visual_Speech_Recognition_for_Multiple_Languages).
 
-Our code is inspired from [RobustGER](https://github.com/YUCHEN005/RobustGER/tree/master). Please cite their paper too if you find our paper or code useful.  
+Our code for LipGER is inspired from [RobustGER](https://github.com/YUCHEN005/RobustGER/tree/master). Please cite their paper too if you find our paper or code useful.  
 
 
-## Citation    
+## 🔏 Citation    
 
 ```
 @misc{ghosh2024lipger,
