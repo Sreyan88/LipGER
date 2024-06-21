@@ -68,16 +68,19 @@ Additionally, the provided methods use only speech as input. For audio-visual N-
 Assuming you have corresponding videos for all your speech files, follow these steps to crop mouth ROI from the videos.
 
 - Install [RetinaFace](./crop_mouth) or [MediaPipe](https://pypi.org/project/mediapipe/) tracker.
+- Update the dir_path or txt_file_path in [crop_mouth_script.py](./crop_mouth/crop_mouth_script.py) to the root directory where the mp4 files exist or text file path which has all the paths to mp4 files lsited.
 - Run the following command from [crop_mouth](./crop_mouth) directory to crop mouth ROI:
   ```
-  python crop_mouth.py data_filename=[data_filename] dst_filename=[dst_filename]
+  python crop_mouth_script.py
   ```
+  The cropped mp4 files will be saved to same loaction as that of the full video with "_crop.mp4" extension.
 #### Step 3: Convert the cropped mouth ROI to hdf5 format
 - Update the path to json file (dataset_path) in [convert_lip.py](./crop_mouth/convert_lip.py), and run the following command:
 ```
 python covert_lip.py
 ```
 This will convert the mp4 ROI to hdf5, the code will change the path of mp4 ROI to hdf5 ROI in the same json file. 
+You can choose from "mediapipe" and "retinaface" detectors by changing the "detector" in [default.yaml](./crop_mouth/default.yaml)
 
 #### Step 4: Construct the required JSON file  
 
