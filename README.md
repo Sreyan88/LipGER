@@ -34,7 +34,7 @@ For more details, you can also refer to [this link](https://github.com/YUCHEN005
 
 The checkpoint is available [here](https://drive.google.com/file/d/1RqGd_13BeX1ybD1UPJIu8eDsilCsrAF9/view?usp=sharing). After downloading, change the path of the checkpoint at <>.
 
-### 2. Prepare the dataset for training (and inference)  
+### 3. Prepare the dataset for training (and inference)  
 LipGER expects all train, val and test file to be in the format of [sample_data.json](./sample_data.json).
 #### Step 1: Crop Mouth ROI from videos
 - Install [RetinaFace](./crop_mouth) or [MediaPipe](https://pypi.org/project/mediapipe/) tracker.
@@ -64,7 +64,7 @@ python covert_lip.py
 ```
 After converting the mp4 ROI to hdf5, the code will change the path of mp4 ROI to hdf5 ROI in the same json file. 
 
-### 3. Fine-tune LipGER  
+### 4. Fine-tune LipGER  
 
 To finetune LipGER, just run:
 
