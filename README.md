@@ -1,6 +1,7 @@
 # LipGER
-Code for InterSpeech 2024 Paper: LipGER: Visually-Conditioned Generative Error Correction for Robust Automatic Speech Recognition
+Code for InterSpeech 2024 Paper: [LipGER: Visually-Conditioned Generative Error Correction for Robust Automatic Speech Recognition](https://arxiv.org/abs/2406.04432)  
 
+![Proposed Methodology](./assets/lip.jpg)
 
 ## Prepare the environment  
 
