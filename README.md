@@ -35,34 +35,52 @@ For more details, you can also refer to [this link](https://github.com/YUCHEN005
 The checkpoint is available [here](https://drive.google.com/file/d/1RqGd_13BeX1ybD1UPJIu8eDsilCsrAF9/view?usp=sharing). After downloading, change the path of the checkpoint at <>.
 
 ### 3. Prepare the dataset for training (and inference)  
-LipGER expects all train, val and test file to be in the format of [sample_data.json](./sample_data.json).
-#### Step 1: Crop Mouth ROI from videos
+LipGER expects all train, val and test file to be in the format of [sample_data.json](./data/sample_data.json). An instance in the file looks like:
+
+```
+{
+        "Dataset": "dataset_name",
+        "Uid": "unique_id",
+        "Caption": "The best hypothesis among the N-best hypotheses.",
+        "Noisy_Wav": "path_to_noisy_wav",
+        "Mouthroi": "path_to_mouth_roi_mp4",
+        "Video": "path_to_video_mp4",
+        "nhyps_base": [ list of N-best hypotheses ],
+}
+```
+
+#### Step 1: Generate the N-best hypotheses  
+You need to pass the speech files through a trained ASR model capable of generating N-best hypotheses. We provide 2 ways in this repo to help you achieve this. Feel free to use other methods.
+- Sample code for N-best hypotheses generation using WavLM + ESPnet can be found [here](./data/wavlm). You might need to write a bit of code of getting your files as input to the model. However, the for-loop just expects speech files. Raise an issue if you are gaving difficulties at this point.
+- Sample code for N-best hypotheses generation using Whisper can be found [here](./data/nhyps.py). We changed some code in whisper which can be found [here](./data/whisper). If you install whisper using `pip install whisper` and then run [nhyps.py](./data/nhyps.py) from the `data` folder, you should be good!  
+
+Note that for both methods, the first in the list is the best hypothesis (used in `Caption` filed of the JSON) and the others are the N-best hypotheses (used in `nhyps_base` field of the JSON).  
+
+Additionally, the provided methods use only speech as input. For audio-visual N-best hypotheses generation, we used [Auto-AVSR](https://github.com/mpc001/auto_avsr). If you need help with the code, please raise an issue!  
+
+#### Step 2: Crop Mouth ROI from Videos  
+
+Assuming you have corresponding videos for all your speech files, follow these steps to crop mouth ROI from the videos.
+
 - Install [RetinaFace](./crop_mouth) or [MediaPipe](https://pypi.org/project/mediapipe/) tracker.
 - Run the following command from [crop_mouth](./crop_mouth) directory to crop mouth ROI:
   ```
   python crop_mouth.py data_filename=[data_filename] dst_filename=[dst_filename]
   ```
-#### Step 2: Convert the cropped mouth ROI to hdf5 format
-- LipGER expects a json with 'mouthroi' as one of the keys and the path to the mouth ROIs extracted in step 1. We have provided a sample json in [sample_data.json](./sample_data.json). Each instance in the json should look like below:
-  
-```
-{
-        "Dataset": "dataset_name",
-        "Uid": "unique_id",
-        "Caption": "[H] Okay. Yeah, I can deal with that.",
-        "Noisy_Wav": "path_to_noisy_wav",
-        "Mouthroi": "path_to_mouth_roi_mp4",
-        "Video": "path_to_video_mp4",
-        "nhyps_base": [ list of n-best hyps ],
-        "whisper_emb": "whisper_emdedding_npy"
-    }
-```
-
+#### Step 3: Convert the cropped mouth ROI to hdf5 format
 - Update the path to json file (dataset_path) in [convert_lip.py](./crop_mouth/convert_lip.py), and run the following command:
 ```
 python covert_lip.py
 ```
-After converting the mp4 ROI to hdf5, the code will change the path of mp4 ROI to hdf5 ROI in the same json file. 
+This will convert the mp4 ROI to hdf5, the code will change the path of mp4 ROI to hdf5 ROI in the same json file. 
+
+#### Step 4: Construct the required JSON file  
+
+After you have the N-best hypotheses, construct the JSON file in the required format. We do not provide specific code for this part as data preparation might differ for everyone, but the code should be simple. Again, raise an issue if you have any doubts!
+
+#### Step 5: Convert the JSON to a pt file
+
+LipGER training scripts don't take in JSON for training or evaluation. You need to convert them into a pt file. You can run [convert_to_pt.py](./data/convert_to_pt.py) to achieve this! Change `model_name` according to your wish in line 27 and add the path to your JSON in line 58.  
 
 ### 4. Fine-tune LipGER  
 
@@ -71,7 +89,7 @@ To finetune LipGER, just run:
 ```
 sh finetune.sh
 ```
-where you need to manually set the values for `data` (with the dataset name), `--train_path` and `--val_path` (with absolute paths to train and valid files).
+where you need to manually set the values for `data` (with the dataset name), `--train_path` and `--val_path` (with absolute paths to train and valid .pt files).
 
 ## LipGER inference  
 
@@ -86,16 +104,13 @@ The code for cropping mouth ROI is inspired from [Visual_Speech_Recognition_for_
 
 Our code for LipGER is inspired from [RobustGER](https://github.com/YUCHEN005/RobustGER/tree/master). Please cite their paper too if you find our paper or code useful.  
 
-
 ## 🔏 Citation    
 
 ```
-@misc{ghosh2024lipger,
-      title={LipGER: Visually-Conditioned Generative Error Correction for Robust Automatic Speech Recognition}, 
-      author={Sreyan Ghosh and Sonal Kumar and Ashish Seth and Purva Chiniya and Utkarsh Tyagi and Ramani Duraiswami and Dinesh Manocha},
-      year={2024},
-      eprint={2406.04432},
-      archivePrefix={arXiv},
-      primaryClass={id='eess.AS' full_name='Audio and Speech Processing' is_active=True alt_name=None in_archive='eess' is_general=False description='Theory and methods for processing signals representing audio, speech, and language, and their applications. This includes analysis, synthesis, enhancement, transformation, classification and interpretation of such signals as well as the design, development, and evaluation of associated signal processing systems. Machine learning and pattern analysis applied to any of the above areas is also welcome.  Specific topics of interest include: auditory modeling and hearing aids; acoustic beamforming and source localization; classification of acoustic scenes; speaker separation; active noise control and echo cancellation; enhancement; de-reverberation; bioacoustics; music signals analysis, synthesis and modification; music information retrieval;  audio for multimedia and joint audio-video processing; spoken and written language modeling, segmentation, tagging, parsing, understanding, and translation; text mining; speech production, perception, and psychoacoustics; speech analysis, synthesis, and perceptual modeling and coding; robust speech recognition; speaker recognition and characterization; deep learning, online learning, and graphical models applied to speech, audio, and language signals; and implementation aspects ranging from system architecture to fast algorithms.'}
+@inproceedings{ghosh23b_interspeech,
+  author={Sreyan Ghosh and Sonal Kumar and Ashish Seth and Purva Chiniya and Utkarsh Tyagi and Ramani Duraiswami and Dinesh Manocha},
+  title={{LipGER: Visually-Conditioned Generative Error Correction for Robust Automatic Speech Recognition}},
+  year=2024,
+  booktitle={Proc. INTERSPEECH 2024},
 }
 ```
