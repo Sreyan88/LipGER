@@ -3,6 +3,10 @@ Code for InterSpeech 2024 Paper: [LipGER: Visually-Conditioned Generative Error 
 
 ![Proposed Methodology](./assets/lip.jpg)
 
+## LipHyp
+
+You can download the LipHyp data from [here](https://drive.google.com/drive/folders/1ThZcxG5yq_1SfvtnclM3_0trfTUP6W98?usp=sharing)!
+
 ## Prepare the environment  
 
 ```
