@@ -54,12 +54,10 @@ args = parser.parse_args()
 
 devices = args.d
 
-exp_path = f'/fs/nexus-projects/brain_project/eccv/RobustGER/RobustGER/runs'
+exp_path = f'/path/where/you/want_to_save/'
 predict_dir = f'{exp_path}/predictions_avsr_{args.test_data}'  # place to save predictions
 
 data_path = f'{args.test_data}'
-
-# file = 
 
 precision = None
 quantize = None
@@ -72,13 +70,13 @@ fabric.launch()
 
 dtype = torch.bfloat16 if fabric.device.type == "cuda" and torch.cuda.is_bf16_supported() else torch.float32
 
-checkpoint_dir = Path("/fs/nexus-projects/brain_project/eccv/RobustGER/checkpoints/microsoft/phi-2")
+checkpoint_dir = Path("/path/to/your/chckpoint/folder") # path to the folder where you prepared your checkpoints
 check_valid_checkpoint_dir(checkpoint_dir)
 
 with open(checkpoint_dir / "lit_config.json") as fp:
     config = Config(**json.load(fp))
 
-checkpoint_path = '/fs/nexus-projects/brain_project/eccv/RobustGER/RobustGER/runs/finetune_lrs3_avsr_phi/iter-028000.pth'
+checkpoint_path = '/path.to/your/adapter.pth'
 
 with fabric.init_module(empty_init=False):
     model = GPT(config)
@@ -166,8 +164,7 @@ def result(adapter_path, model):
     return return_dict
 
 
-# file = 'adapter_best.pth'
-adapter_path = '/fs/nexus-projects/brain_project/eccv/RobustGER/RobustGER/runs/finetune_lrs3_avsr_phi/iter-028000.pth'
+adapter_path = '/path.to/your/adapter' # same as checkpoint_path
 
 result_dict = result(adapter_path, model)
 wer_percent = result_dict['WER'] * 100
@@ -176,6 +173,5 @@ wer_percent_post = result_dict['post_ST_wer'] * 100
 gt_percent = result_dict['gtms'] * 100
 gt_percent_post = result_dict['post_gtms'] * 100
 
-print('epoch: ', checkpoint_path, 'WER: ', wer_percent, "WER_post: ", wer_percent_post, "GTM: ", gt_percent, "GTM_post: ",
-      gt_percent_post)
+print('epoch: ', checkpoint_path, 'WER: ', wer_percent, "WER_post: ", wer_percent_post, "GTM: ", gt_percent, "GTM_post: ", gt_percent_post)
 

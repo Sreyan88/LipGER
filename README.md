@@ -101,7 +101,7 @@ where you need to manually set the values for `data` (with the dataset name), `-
 
 ## LipGER inference  
 
-For inference just run:  
+For inference, first change the respective paths in [robust_ger.py](./inference/robust_ger.py), and then run (with the appropriate test data path):  
 
 ```
 infer.sh
