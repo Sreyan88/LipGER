@@ -37,7 +37,7 @@ For more details, you can also refer to [this link](https://github.com/YUCHEN005
 
 ### 2. Download the checkpoint for the Lip Motion Encoder  
 
-The checkpoint is available [here](https://drive.google.com/file/d/1RqGd_13BeX1ybD1UPJIu8eDsilCsrAF9/view?usp=sharing). After downloading, change the path of the checkpoint at <>.
+The checkpoint is available [here](https://drive.google.com/file/d/1RqGd_13BeX1ybD1UPJIu8eDsilCsrAF9/view?usp=sharing). After downloading, change the path of the checkpoint [here](https://github.com/Sreyan88/LipGER/blob/main/lipger/lipger.py#L246).
 
 ### 3. Prepare the dataset for training (and inference)  
 LipGER expects all train, val and test file to be in the format of [sample_data.json](./data/sample_data.json). An instance in the file looks like:
@@ -46,7 +46,7 @@ LipGER expects all train, val and test file to be in the format of [sample_data.
 {
         "Dataset": "dataset_name",
         "Uid": "unique_id",
-        "Caption": "The best hypothesis among the N-best hypotheses.",
+        "Caption": "The ground truth transcription.",
         "Noisy_Wav": "path_to_noisy_wav",
         "Mouthroi": "path_to_mouth_roi_mp4",
         "Video": "path_to_video_mp4",
@@ -59,7 +59,7 @@ You need to pass the speech files through a trained ASR model capable of generat
 - Sample code for N-best hypotheses generation using WavLM + ESPnet can be found [here](./data/wavlm). You might need to write a bit of code of getting your files as input to the model. However, the for-loop just expects speech files. Raise an issue if you are gaving difficulties at this point.
 - Sample code for N-best hypotheses generation using Whisper can be found [here](./data/nhyps.py). We changed some code in whisper which can be found [here](./data/whisper). If you install whisper using `pip install whisper` and then run [nhyps.py](./data/nhyps.py) from the `data` folder, you should be good!  
 
-Note that for both methods, the first in the list is the best hypothesis (used in `Caption` filed of the JSON) and the others are the N-best hypotheses (used in `nhyps_base` field of the JSON).  
+Note that for both methods, the first in the list is the best hypothesis and the others are the N-best hypotheses (they are passed as a list `nhyps_base` field of the JSON and used for constructing a prompt in the next steps).  
 
 Additionally, the provided methods use only speech as input. For audio-visual N-best hypotheses generation, we used [Auto-AVSR](https://github.com/mpc001/auto_avsr). If you need help with the code, please raise an issue!  
 

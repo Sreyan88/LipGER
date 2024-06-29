@@ -550,3 +550,4 @@ xxhash==3.2.0
 yarl==1.9.2
 zipp==3.16.2
 zstandard==0.22.0
+cv2
