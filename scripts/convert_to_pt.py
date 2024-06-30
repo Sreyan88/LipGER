@@ -25,8 +25,6 @@ model = SentenceTransformer('all-MiniLM-L6-v2')
 model = model.to(torch.device("cuda"))
 
 # model_name = "meta-llama/Llama-2-13b-chat-hf"
-# HfFolder.save_token('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')
-
 model_name = "microsoft/phi-2"
 
 import random
