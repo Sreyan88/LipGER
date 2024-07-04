@@ -1,5 +1,5 @@
 # LipGER
-This is the official implementation for our paper [LipGER: Visually-Conditioned Generative Error Correction for Robust Automatic Speech Recognition](https://arxiv.org/abs/2406.04432) at InterSpeech 2024 which is selected for oral presentation.
+This is the official implementation for our paper [LipGER: Visually-Conditioned Generative Error Correction for Robust Automatic Speech Recognition](https://arxiv.org/abs/2406.04432) at InterSpeech 2024 which is selected for **oral presentation**.
 
 ![Proposed Methodology](./assets/lip.jpg)
 
