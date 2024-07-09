@@ -7,6 +7,6 @@
 # "val_path" specifies the valid data path
 
 data='facestar_whisper_phi'
-python finetune/robust_ger.py --data ${data} \
+python finetune/lipger.py --data ${data} \
        --train_path /absolute/path/to_your_train.pt \
        --val_path /absolute/path/to_your_val.pt \
