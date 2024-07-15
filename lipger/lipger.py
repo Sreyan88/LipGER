@@ -377,5 +377,5 @@ def mark_only_adapter_as_trainable(model: GPT) -> None:
         param.requires_grad = adapter_filter(name, param)
 
 def adapter_filter(key: str, value: Any) -> bool:
-    return "visual" in key or "adapter_wte" in key or "gating_factor" in key or 'projection' in key or 'ef_' in key
+    return "visual" in key or "adapter_wte" in key or "gating_factor" in key or 'projection' in key or 'ef_' in key or "adapter_scale" in key or "adapter_bias" in key
 
