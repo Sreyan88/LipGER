@@ -36,6 +36,19 @@ class Config(BaseConfig):
     adapter_start_layer: int = 2
     n_state: int = 384
 
+class AdapterV2Linear(torch.nn.Module):
+    def __init__(self, in_features: int, out_features: int, **kwargs) -> None:
+        super().__init__()
+        self.linear = torch.nn.Linear(in_features, out_features, **kwargs)
+        self.adapter_bias = torch.nn.Parameter(torch.zeros(out_features), requires_grad=False)
+        self.adapter_scale = torch.nn.Parameter(torch.ones(out_features), requires_grad=False)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.adapter_scale * (self.linear(x) + self.adapter_bias)
+
+    def reset_parameters(self) -> None:
+        nn.init.zeros_(self.adapter_bias)
+        nn.init.ones_(self.adapter_scale)
 
 class CausalSelfAttention(BaseCausalSelfAttention):
     """A modification of `lit_gpt.model.CausalSelfAttention` that adds the attention
@@ -258,7 +271,8 @@ class GPT(BaseModel):
         self.config = config
 
         self.visual_net_lipreading = self.build_lipencoder("/path/to/lrw_snv1x_tcn2x.json")
-        self.lm_head = nn.Linear(config.n_embd, config.padded_vocab_size, bias=False)
+        # self.lm_head = nn.Linear(config.n_embd, config.padded_vocab_size, bias=False)
+        self.lm_head = AdapterV2Linear(config.n_embd, config.padded_vocab_size, bias=False)
         self.transformer = nn.ModuleDict(
             dict(
                 wte=nn.Embedding(config.padded_vocab_size, config.n_embd),
