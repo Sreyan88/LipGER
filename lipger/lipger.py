@@ -20,6 +20,7 @@ from lipger.config import Config as BaseConfig
 from lipger.model import GPT as BaseModel
 from lipger.model import CausalSelfAttention as BaseCausalSelfAttention
 from lipger.model import KVCache, RoPECache, apply_rope
+from lipger.utils import map_old_state_dict_weights #experimental
 
 from lipger.rmsnorm import RMSNorm
 from timm.models.vision_transformer import Block as Visual_Block
@@ -184,7 +185,7 @@ class CausalSelfAttention(BaseCausalSelfAttention):
     def reset_parameters(self) -> None:
         torch.nn.init.zeros_(self.gating_factor)
 
-    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:
+    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:    
         """For compatibility with older checkpoints."""
         if (key := prefix + "gating_factor") in state_dict and state_dict[key].size(1) == self.config.n_head:
             state_dict[key] = state_dict[key].permute(0, 2, 1, 3)
@@ -272,7 +273,7 @@ class GPT(BaseModel):
 
         self.visual_net_lipreading = self.build_lipencoder("/path/to/lrw_snv1x_tcn2x.json")
         # self.lm_head = nn.Linear(config.n_embd, config.padded_vocab_size, bias=False)
-        self.lm_head = AdapterV2Linear(config.n_embd, config.padded_vocab_size, bias=False)
+        self.lm_head = AdapterV2Linear(config.n_embd, config.padded_vocab_size, bias=False) #experimental, replace with above line if does not work
         self.transformer = nn.ModuleDict(
             dict(
                 wte=nn.Embedding(config.padded_vocab_size, config.n_embd),
@@ -369,6 +370,13 @@ class GPT(BaseModel):
         super()._init_weights(module)
         if isinstance(module, CausalSelfAttention):
             module.reset_parameters()
+    
+    # experimental for AdapterV2Linear, delete entire block of does not work
+    def _load_from_state_dict(self, state_dict: Dict, prefix: str, *args: Any, **kwargs: Any) -> None:
+        """For compatibility with base checkpoints."""
+        mapping = {"lm_head.weight": "lm_head.linear.weight", "lm_head.bias": "lm_head.linear.bias"}
+        state_dict = map_old_state_dict_weights(state_dict, mapping, prefix)
+        super()._load_from_state_dict(state_dict, prefix, *args, **kwargs)
 
 
 def mark_only_adapter_as_trainable(model: GPT) -> None:
